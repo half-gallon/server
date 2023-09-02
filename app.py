@@ -10,10 +10,12 @@ from flask_cors import CORS
 from pydub import AudioSegment
 from mclbn256 import Fr
 
+from constant import input_shape
+
 ARTIFACTS_PATH = "artifacts"
 
 
-MODEL_PATH = os.path.join(ARTIFACTS_PATH, "network.onnx")
+MODEL_PATH = os.path.join(ARTIFACTS_PATH, "network.ezkl")
 SETTINGS_PATH = os.path.join(ARTIFACTS_PATH, "settings.json")
 PK_PATH = os.path.join(ARTIFACTS_PATH, "pk.key")
 SRS_PATH = os.path.join(ARTIFACTS_PATH, "kzg.srs")
@@ -31,20 +33,6 @@ celery.conf.update(app.config)
 
 
 # mfcc extraction from augmented data
-
-
-def extract_bytes_addr(addr):
-    addr_int = int(addr, 0)
-    rep = Fr(addr_int)
-
-    ser = rep.serialize()
-
-    first_byte = int.from_bytes(ser[0:8], "little")
-    second_byte = int.from_bytes(ser[8:16], "little")
-    third_byte = int.from_bytes(ser[16:24], "little")
-    fourth_byte = int.from_bytes(ser[24:32], "little")
-
-    return [first_byte, second_byte, third_byte, fourth_byte]
 
 
 def u64_to_fr(array):
@@ -65,17 +53,22 @@ def compute_proof(audio):  # witness is a json string
             wfo.write(audio)
             wfo.flush()
 
+            audio_file_name = wfo.name
+
+            val = extract_mfcc(audio_file_name)
+            val = np.array(val)
+
+            val = np.transpose(val)
+            val = val.flatten()
+
             val = extract_mfcc(wfo.name)
 
-            # 0 pad 2nd dim to max size
-            if val.shape[2] < 130:
-                val = np.pad(val, ((0, 0), (0, 0), (0, 130 - val.shape[2])))
-            # truncate to max size
-            else:
-                val = val[:, :, :130]
-
             inp = {
-                "input_data": [[addr_ints], val.flatten().tolist()],
+                "input_shapes": [input_shape, [1, 2]],
+                "input_data": [
+                    val.tolist(),
+                    [1, 0],
+                ],
             }
 
             witness = tempfile.NamedTemporaryFile()
@@ -99,12 +92,8 @@ def compute_proof(audio):  # witness is a json string
                 settings_path=SETTINGS_PATH,
             )
 
-            # this is the quantized scord, which we convert to an int:
-            score = u64_to_fr(wit["outputs"][1][0]).__int__()
-
             res = {
-                "output_data": score,
-                "proof": res["proof"],
+                "proof": "0x" + res["proof"],
             }
 
         return res
@@ -117,9 +106,10 @@ def health_check():
 
 @app.route("/prove", methods=["POST"])
 def prove_task():
+    print("updated???")
     try:
         f = request.files["audio"].read()
-        result = compute_proof.delay(address, f)
+        result = compute_proof.delay(f)
         result.ready()  # returns true when ready
         res = result.get()  # bytes of proof
 

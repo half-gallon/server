@@ -3,10 +3,7 @@ import os
 import numpy as np
 import librosa
 
-# -------------------------------------------
-# --------- Parameters ---------------------
-max_pad_len = 190
-n_mfcc = 13
+from constant import max_pad_len, n_mfcc
 
 
 # -------------------------------------------

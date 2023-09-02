@@ -7,6 +7,7 @@ from mclbn256 import Fr
 import numpy as np
 
 from model_lib import extract_mfcc
+from constant import input_shape
 
 ARTIFACTS_PATH = "artifacts"
 
@@ -41,7 +42,7 @@ def compute_proof(audio_file_name):  # witness is a json string
 
     with tempfile.NamedTemporaryFile() as pffo:
         inp = {
-            "input_shapes": [[1, 190, 13], [1, 2]],
+            "input_shapes": [input_shape, [1, 2]],
             "input_data": [
                 val.tolist(),
                 [1, 0],
@@ -78,17 +79,7 @@ def compute_proof(audio_file_name):  # witness is a json string
         )
         json.dump(res, open(f"{audio_file_name}.proof.json", "w"), indent=2)
 
-        v0_arr = res["instances"][0][0]
-        v1_arr = res["instances"][0][1]
-
-        v0 = u64_to_fr(v0_arr)  # 이게 float number여야 하는데...
-        v1 = u64_to_fr(v1_arr)
-
-        print("v0", v0)
-        print("v1", v1)
-
         res = {
-            "instances": [str(v0), str(v1)],
             "proof": "0x" + res["proof"],
         }
         json.dump(res, open(f"{audio_file_name}.api.response.json", "w"), indent=2)
