@@ -58,10 +58,7 @@ def u64_to_fr(array):
 
 
 @celery.task
-def compute_proof(addr, audio):  # witness is a json string
-    if not addr.startswith("0x"):
-        addr = "0x" + addr
-    addr_ints = extract_bytes_addr(addr)
+def compute_proof(audio):  # witness is a json string
     with tempfile.NamedTemporaryFile() as pffo:
         with tempfile.NamedTemporaryFile() as wfo:
             # write audio to temp file
@@ -113,10 +110,14 @@ def compute_proof(addr, audio):  # witness is a json string
         return res
 
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/prove", methods=["POST"])
 def prove_task():
     try:
-        address = request.form["address"]
         f = request.files["audio"].read()
         result = compute_proof.delay(address, f)
         result.ready()  # returns true when ready

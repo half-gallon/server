@@ -2490,8 +2490,8 @@
   ],
   "output_data": [
     [
-      1.0,
-      0.0
+      true,
+      false
     ]
   ]
 }

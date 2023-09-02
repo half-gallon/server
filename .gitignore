@@ -1,3 +1,6 @@
 venv
 __pycache__
 .vscode
+
+# manually provide pk.key
+artifacts/pk.key
