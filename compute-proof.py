@@ -28,7 +28,7 @@ def u64_to_fr(array):
     return Fr(reconstructed_bytes)
 
 
-def compute_proof(audio_file_name):  # witness is a json string
+def compute_proof(audio_file_name, is_owner):  # witness is a json string
     print("processing ", audio_file_name)
     val = extract_mfcc(audio_file_name)
     val = np.array(val)
@@ -45,7 +45,7 @@ def compute_proof(audio_file_name):  # witness is a json string
             "input_shapes": [input_shape, [1, 2]],
             "input_data": [
                 val.tolist(),
-                [1, 0],
+                [1, 0] if is_owner else [0, 1],
             ],
         }
         json.dump(inp, open(f"{audio_file_name}.input.json", "w"), indent=2)
@@ -88,5 +88,5 @@ def compute_proof(audio_file_name):  # witness is a json string
 
 
 if __name__ == "__main__":
-    compute_proof("owner.wav")
-    compute_proof("other.wav")
+    compute_proof("owner.wav", is_owner=True)
+    compute_proof("other.wav", is_owner=False)

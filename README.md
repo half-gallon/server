@@ -18,7 +18,11 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-./run.sh # build and train model, then export verifi.sol contract
+# import ezkl artifacts from '../model'
+make copy-model
+
+# start api serve
+docker compose up
 ```
 
 Then run server from server repository. (link TBD)
