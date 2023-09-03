@@ -22,3 +22,6 @@ run-redis:
 run-rabbitmq:
 	docker run -d -p 5672:5672 --name rabbitmq rabbitmq
 
+
+run-standalone:
+	gunicorn app_alone:app -w3 -b 0.0.0.0:8000 --timeout 120

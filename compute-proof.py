@@ -67,6 +67,10 @@ def compute_proof(audio_file_name, is_owner):  # witness is a json string
         )
         json.dump(wit, open(f"{audio_file_name}.witness.json", "w"), indent=2)
 
+        instance0 = wit["outputs"][0][0]
+        is_owner = (np.array(instance0).sum() == 1).item()
+        print("is_owner", is_owner)
+
         res = ezkl.prove(
             witness.name,
             MODEL_PATH,
@@ -80,6 +84,7 @@ def compute_proof(audio_file_name, is_owner):  # witness is a json string
         json.dump(res, open(f"{audio_file_name}.proof.json", "w"), indent=2)
 
         res = {
+            "isOwner": is_owner,
             "proof": "0x" + res["proof"],
         }
         json.dump(res, open(f"{audio_file_name}.api.response.json", "w"), indent=2)

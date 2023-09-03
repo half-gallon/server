@@ -1,5 +1,4 @@
 import json
-from celery import Celery
 import ezkl
 import tempfile
 from model_lib import extract_mfcc
@@ -21,18 +20,7 @@ PK_PATH = os.path.join(ARTIFACTS_PATH, "pk.key")
 SRS_PATH = os.path.join(ARTIFACTS_PATH, "kzg.srs")
 
 app = Flask(__name__)
-app.config["CELERY_BROKER_URL"] = os.getenv("APP_BROKER_URI")
-app.config["TEMPLATES_AUTO_RELOAD"] = True
 CORS(app)
-
-celery = Celery(
-    "worker", backend=os.getenv("APP_BACKEND"), broker=app.config["CELERY_BROKER_URL"]
-)
-
-celery.conf.update(app.config)
-
-
-# mfcc extraction from augmented data
 
 
 def u64_to_fr(array):
@@ -45,7 +33,6 @@ def u64_to_fr(array):
     return Fr(reconstructed_bytes)
 
 
-@celery.task
 def compute_proof(audio):  # witness is a json string
     with tempfile.NamedTemporaryFile() as pffo:
         with tempfile.NamedTemporaryFile() as wfo:
@@ -75,9 +62,15 @@ def compute_proof(audio):  # witness is a json string
             json.dump(inp, audio_input)
             audio_input.flush()
 
+            print("HEY4")
+            print("audio_input.name", audio_input.name)
+            print("MODEL_PATH", MODEL_PATH)
+            print("witness.name", witness.name)
+            print("SETTINGS_PATH", SETTINGS_PATH)
             wit = ezkl.gen_witness(
                 audio_input.name, MODEL_PATH, witness.name, settings_path=SETTINGS_PATH
             )
+            print("HEY5")
 
             res = ezkl.prove(
                 witness.name,
@@ -99,21 +92,23 @@ def compute_proof(audio):  # witness is a json string
 
 @app.route("/health", methods=["GET"])
 def health_check():
+    print("health check")
     return jsonify({"status": "ok"})
 
 
 @app.route("/prove", methods=["POST"])
 def prove_task():
-    print("updated???")
+    print("prove")
     try:
         f = request.files["audio"].read()
-        result = compute_proof.delay(f)
-        result.ready()  # returns true when ready
-        res = result.get()  # bytes of proof
-
-        return jsonify({"status": "ok", "res": res})
+        print("file read. try to compute proof")
+        res = compute_proof(f)
+        print("computed")
+        return jsonify(res)
 
     except Exception as e:
+        print(e)
+
         return repr(e), 500
 
 
@@ -123,30 +118,7 @@ def index():
 
 
 if __name__ == "__main__":
-    addr = "0xb794f5ea0ba39494ce839613fffba74279579268"
-    addr_int = int(addr, 0)
-    rep = Fr(addr_int)
-    print(rep)
+    audio_file = "owner.wav"
+    audio = AudioSegment.from_wav(audio_file)
 
-    ser = rep.serialize()
-
-    first_byte = int.from_bytes(ser[0:8], "little")
-    second_byte = int.from_bytes(ser[8:16], "little")
-    third_byte = int.from_bytes(ser[16:24], "little")
-    fourth_byte = int.from_bytes(ser[24:32], "little")
-
-    print(first_byte)
-    print(second_byte)
-    print(third_byte)
-    print(fourth_byte)
-
-    reconstructed_bytes = (
-        first_byte.to_bytes(8, byteorder="little")
-        + second_byte.to_bytes(8, byteorder="little")
-        + third_byte.to_bytes(8, byteorder="little")
-        + fourth_byte.to_bytes(8, byteorder="little")
-    )
-
-    recon = Fr.deserialize(reconstructed_bytes)
-
-    assert rep == recon
+    res = compute_proof(audio)
