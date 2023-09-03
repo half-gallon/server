@@ -8,12 +8,20 @@ https://github.com/zkonduit/cryptoidol
 
 ## Requirement
 
-- [model](https://github.com/half-gallon/model) (in the same directory of `server`)
 - python@3.10.13
 
 ## Install
 
 ```bash
+# init model submodule
+git submodule update --init --recursive
+
+# follow install instruction in model
+cd model
+... # do something
+
+
+# install python libraries
 python3.10 -m venv venv
 source ./venv/bin/activate
 pip install -r requirements.txt
