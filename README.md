@@ -30,7 +30,7 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-# import ezkl artifacts from '../model'. See more https://github.com/half-gallon/model
+# import ezkl artifacts from model. See more https://github.com/half-gallon/model
 make copy-model
 
 # (optional) test proof generation with `owner.wav`, `other.wav`
