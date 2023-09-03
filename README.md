@@ -1,4 +1,4 @@
-## half-gallon: proving server
+# half-gallon: proving server
 
 This flask app requires `.onnx` and ezkl artifacts generated from [model](https://github.com/half-gallon/model). It receives `.wav` audio of user and return the proof tell that the input voice matches trained voices to the model.
 
