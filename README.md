@@ -38,5 +38,5 @@ python compute-proof.py
 
 # start api server
 # note that api server with complex model cannot generate proof within timeout
-gunicorn app_alone:app -w3 -b 0.0.0.0:6000 --timeout 120
+gunicorn app_alone:app -w3 -b 0.0.0.0:8000 --timeout 120
 ```
