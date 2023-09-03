@@ -4,7 +4,6 @@ https://github.com/zkonduit/cryptoidol
 
 ## Requirement
 
-- docker
 - [model](https://github.com/half-gallon/model) (in the same directory of `server`)
 
 ## Install
@@ -18,11 +17,12 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-# import ezkl artifacts from '../model'
+# import ezkl artifacts from '../model'. See more https://github.com/half-gallon/model
 make copy-model
 
-# start api serve
-docker compose up
-```
+# (optional) test proof generation with `owner.wav`, `other.wav`
+python compute-proof.py
 
-Then run server from server repository. (link TBD)
+# start api server
+gunicorn app_alone:app -w3 -b 0.0.0.0:6000 --timeout 120
+```
