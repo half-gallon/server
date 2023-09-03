@@ -9,6 +9,7 @@ https://github.com/zkonduit/cryptoidol
 ## Requirement
 
 - [model](https://github.com/half-gallon/model) (in the same directory of `server`)
+- python@3.10.13
 
 ## Install
 
@@ -28,5 +29,6 @@ make copy-model
 python compute-proof.py
 
 # start api server
+# note that api server with complex model cannot generate proof within timeout
 gunicorn app_alone:app -w3 -b 0.0.0.0:6000 --timeout 120
 ```
